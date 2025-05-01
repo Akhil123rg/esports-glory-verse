@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Trophy, Mail, User, Lock, UserPlus, Gamepad, Users } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Trophy, Mail, User, Lock, UserPlus, Gamepad, Users, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -9,6 +9,8 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/hooks/use-toast';
 
 const RegisterPage: React.FC = () => {
   const [accountType, setAccountType] = useState('player');
@@ -18,22 +20,65 @@ const RegisterPage: React.FC = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [primaryGame, setPrimaryGame] = useState('');
   const [agreedToTerms, setAgreedToTerms] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   // For organizer account
   const [organizationName, setOrganizationName] = useState('');
   const [website, setWebsite] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const { signUp } = useAuth();
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // In a real app, this would create an account
-    if (accountType === 'player') {
-      console.log('Player registration:', { username, email, password, primaryGame });
-    } else {
-      console.log('Organizer registration:', { organizationName, email, password, website });
-    }
     
-    // For demo purposes, let's redirect to home after "registration"
-    window.location.href = '/';
+    // Validate form
+    if (password !== confirmPassword) {
+      toast({
+        title: "Passwords don't match",
+        description: "Please ensure your passwords match.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!agreedToTerms) {
+      toast({
+        title: "Terms and Conditions",
+        description: "Please agree to the Terms of Service and Privacy Policy.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+
+      const metadata = accountType === 'player' 
+        ? { 
+            username,
+            full_name: username, // We can improve this later by adding a full name field
+            primary_game: primaryGame,
+            account_type: 'player'
+          }
+        : {
+            username: organizationName,
+            full_name: organizationName,
+            website,
+            account_type: 'organizer'
+          };
+
+      await signUp(email, password, metadata);
+      
+      // Redirect to login page after successful signup
+      navigate('/login');
+    } catch (error) {
+      console.error('Registration error:', error);
+      // Error is already handled in the signUp function
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -84,6 +129,7 @@ const RegisterPage: React.FC = () => {
                           placeholder="Choose a username"
                           className="pl-10 bg-esports-background border-esports-accent1/20 text-esports-text"
                           required
+                          disabled={isLoading}
                         />
                       </div>
                     </div>
@@ -100,6 +146,7 @@ const RegisterPage: React.FC = () => {
                           placeholder="Enter your email"
                           className="pl-10 bg-esports-background border-esports-accent1/20 text-esports-text"
                           required
+                          disabled={isLoading}
                         />
                       </div>
                     </div>
@@ -118,6 +165,7 @@ const RegisterPage: React.FC = () => {
                           placeholder="Create a password"
                           className="pl-10 bg-esports-background border-esports-accent1/20 text-esports-text"
                           required
+                          disabled={isLoading}
                         />
                       </div>
                     </div>
@@ -134,6 +182,7 @@ const RegisterPage: React.FC = () => {
                           placeholder="Confirm your password"
                           className="pl-10 bg-esports-background border-esports-accent1/20 text-esports-text"
                           required
+                          disabled={isLoading}
                         />
                       </div>
                     </div>
@@ -141,7 +190,7 @@ const RegisterPage: React.FC = () => {
 
                   <div className="space-y-2">
                     <Label htmlFor="primaryGame" className="text-esports-text">Primary Game</Label>
-                    <Select value={primaryGame} onValueChange={setPrimaryGame}>
+                    <Select value={primaryGame} onValueChange={setPrimaryGame} disabled={isLoading}>
                       <SelectTrigger id="primaryGame" className="bg-esports-background border-esports-accent1/20 text-esports-text">
                         <SelectValue placeholder="Select your main game" />
                       </SelectTrigger>
@@ -165,6 +214,7 @@ const RegisterPage: React.FC = () => {
                       onCheckedChange={(checked) => setAgreedToTerms(checked as boolean)}
                       className="border-esports-accent1/50 data-[state=checked]:bg-esports-accent1 data-[state=checked]:border-esports-accent1"
                       required
+                      disabled={isLoading}
                     />
                     <Label 
                       htmlFor="termsPlayer"
@@ -184,9 +234,19 @@ const RegisterPage: React.FC = () => {
                   <Button 
                     type="submit" 
                     className="w-full bg-esports-accent1 hover:bg-esports-accent1/90"
+                    disabled={isLoading}
                   >
-                    <UserPlus size={18} className="mr-2" />
-                    Create Player Account
+                    {isLoading ? (
+                      <>
+                        <Loader2 size={18} className="mr-2 animate-spin" />
+                        Creating Account...
+                      </>
+                    ) : (
+                      <>
+                        <UserPlus size={18} className="mr-2" />
+                        Create Player Account
+                      </>
+                    )}
                   </Button>
                 </TabsContent>
 
@@ -204,6 +264,7 @@ const RegisterPage: React.FC = () => {
                           placeholder="Enter organization name"
                           className="pl-10 bg-esports-background border-esports-accent1/20 text-esports-text"
                           required
+                          disabled={isLoading}
                         />
                       </div>
                     </div>
@@ -220,6 +281,7 @@ const RegisterPage: React.FC = () => {
                           placeholder="Enter organization email"
                           className="pl-10 bg-esports-background border-esports-accent1/20 text-esports-text"
                           required
+                          disabled={isLoading}
                         />
                       </div>
                     </div>
@@ -238,6 +300,7 @@ const RegisterPage: React.FC = () => {
                           placeholder="Create a password"
                           className="pl-10 bg-esports-background border-esports-accent1/20 text-esports-text"
                           required
+                          disabled={isLoading}
                         />
                       </div>
                     </div>
@@ -254,6 +317,7 @@ const RegisterPage: React.FC = () => {
                           placeholder="Confirm your password"
                           className="pl-10 bg-esports-background border-esports-accent1/20 text-esports-text"
                           required
+                          disabled={isLoading}
                         />
                       </div>
                     </div>
@@ -268,6 +332,7 @@ const RegisterPage: React.FC = () => {
                       onChange={(e) => setWebsite(e.target.value)}
                       placeholder="https://your-organization.com"
                       className="bg-esports-background border-esports-accent1/20 text-esports-text"
+                      disabled={isLoading}
                     />
                   </div>
 
@@ -278,6 +343,7 @@ const RegisterPage: React.FC = () => {
                       onCheckedChange={(checked) => setAgreedToTerms(checked as boolean)}
                       className="border-esports-accent1/50 data-[state=checked]:bg-esports-accent1 data-[state=checked]:border-esports-accent1"
                       required
+                      disabled={isLoading}
                     />
                     <Label 
                       htmlFor="termsOrganizer"
@@ -297,9 +363,19 @@ const RegisterPage: React.FC = () => {
                   <Button 
                     type="submit" 
                     className="w-full bg-esports-accent2 hover:bg-esports-accent2/90"
+                    disabled={isLoading}
                   >
-                    <UserPlus size={18} className="mr-2" />
-                    Create Organizer Account
+                    {isLoading ? (
+                      <>
+                        <Loader2 size={18} className="mr-2 animate-spin" />
+                        Creating Account...
+                      </>
+                    ) : (
+                      <>
+                        <UserPlus size={18} className="mr-2" />
+                        Create Organizer Account
+                      </>
+                    )}
                   </Button>
                 </TabsContent>
               </form>

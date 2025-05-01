@@ -1,24 +1,46 @@
 
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Trophy, Mail, Lock, LogIn } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
+import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/hooks/use-toast';
+import { Loader2 } from 'lucide-react';
 
 const LoginPage: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const { signIn } = useAuth();
+  const navigate = useNavigate();
+  const { toast } = useToast();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // In a real app, this would authenticate with a backend
-    console.log('Login attempt with:', { email, password, rememberMe });
     
-    // For demo purposes, let's redirect to home after "login"
-    window.location.href = '/';
+    if (!email || !password) {
+      toast({
+        title: "Missing fields",
+        description: "Please fill in all required fields.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      await signIn(email, password);
+      navigate('/');
+    } catch (error) {
+      console.error('Login error:', error);
+      // Error is already handled in the signIn function
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -52,6 +74,7 @@ const LoginPage: React.FC = () => {
                       placeholder="Enter your email"
                       className="pl-10 bg-esports-background border-esports-accent1/20 text-esports-text"
                       required
+                      disabled={isLoading}
                     />
                   </div>
                 </div>
@@ -73,6 +96,7 @@ const LoginPage: React.FC = () => {
                       placeholder="Enter your password"
                       className="pl-10 bg-esports-background border-esports-accent1/20 text-esports-text"
                       required
+                      disabled={isLoading}
                     />
                   </div>
                 </div>
@@ -95,9 +119,19 @@ const LoginPage: React.FC = () => {
                 <Button 
                   type="submit" 
                   className="w-full bg-esports-accent1 hover:bg-esports-accent1/90"
+                  disabled={isLoading}
                 >
-                  <LogIn size={18} className="mr-2" />
-                  Sign In
+                  {isLoading ? (
+                    <>
+                      <Loader2 size={18} className="mr-2 animate-spin" />
+                      Signing In...
+                    </>
+                  ) : (
+                    <>
+                      <LogIn size={18} className="mr-2" />
+                      Sign In
+                    </>
+                  )}
                 </Button>
 
                 <div className="text-center text-sm text-esports-muted">

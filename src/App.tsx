@@ -20,6 +20,7 @@ import LeaderboardsPage from "./pages/Leaderboards";
 import AwardsPage from "./pages/Awards";
 import LoginPage from "./pages/Login";
 import RegisterPage from "./pages/Register";
+import EmailVerifiedPage from "./pages/EmailVerified";
 import ProfilePage from "./pages/Profile";
 import AdminDashboardPage from "./pages/admin/Dashboard";
 import NotFound from "./pages/NotFound";
@@ -48,6 +49,7 @@ const App = () => (
                 <Route path="/awards" element={<AwardsPage />} />
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/register" element={<RegisterPage />} />
+                <Route path="/email-verified" element={<EmailVerifiedPage />} />
                 <Route path="/profile" element={<ProfilePage />} />
                 <Route path="/admin/*" element={<AdminDashboardPage />} />
                 <Route path="*" element={<NotFound />} />

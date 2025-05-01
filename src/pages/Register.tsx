@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Trophy, Mail, User, Lock, UserPlus, Gamepad, Users, Loader2 } from 'lucide-react';
+import { Trophy, Mail, User, Lock, UserPlus, Gamepad, Users, Loader2, Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -21,6 +21,8 @@ const RegisterPage: React.FC = () => {
   const [primaryGame, setPrimaryGame] = useState('');
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   // For organizer account
   const [organizationName, setOrganizationName] = useState('');
@@ -159,14 +161,22 @@ const RegisterPage: React.FC = () => {
                         <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-esports-muted" size={18} />
                         <Input
                           id="password"
-                          type="password"
+                          type={showPassword ? "text" : "password"}
                           value={password}
                           onChange={(e) => setPassword(e.target.value)}
                           placeholder="Create a password"
-                          className="pl-10 bg-esports-background border-esports-accent1/20 text-esports-text"
+                          className="pl-10 pr-10 bg-esports-background border-esports-accent1/20 text-esports-text"
                           required
                           disabled={isLoading}
                         />
+                        <button 
+                          type="button"
+                          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-esports-muted hover:text-white"
+                          onClick={() => setShowPassword(!showPassword)}
+                          tabIndex={-1}
+                        >
+                          {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                        </button>
                       </div>
                     </div>
 
@@ -176,14 +186,22 @@ const RegisterPage: React.FC = () => {
                         <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-esports-muted" size={18} />
                         <Input
                           id="confirmPassword"
-                          type="password"
+                          type={showConfirmPassword ? "text" : "password"}
                           value={confirmPassword}
                           onChange={(e) => setConfirmPassword(e.target.value)}
                           placeholder="Confirm your password"
-                          className="pl-10 bg-esports-background border-esports-accent1/20 text-esports-text"
+                          className="pl-10 pr-10 bg-esports-background border-esports-accent1/20 text-esports-text"
                           required
                           disabled={isLoading}
                         />
+                        <button 
+                          type="button"
+                          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-esports-muted hover:text-white"
+                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                          tabIndex={-1}
+                        >
+                          {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                        </button>
                       </div>
                     </div>
                   </div>
@@ -294,14 +312,22 @@ const RegisterPage: React.FC = () => {
                         <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-esports-muted" size={18} />
                         <Input
                           id="organizerPassword"
-                          type="password"
+                          type={showPassword ? "text" : "password"}
                           value={password}
                           onChange={(e) => setPassword(e.target.value)}
                           placeholder="Create a password"
-                          className="pl-10 bg-esports-background border-esports-accent1/20 text-esports-text"
+                          className="pl-10 pr-10 bg-esports-background border-esports-accent1/20 text-esports-text"
                           required
                           disabled={isLoading}
                         />
+                        <button 
+                          type="button"
+                          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-esports-muted hover:text-white"
+                          onClick={() => setShowPassword(!showPassword)}
+                          tabIndex={-1}
+                        >
+                          {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                        </button>
                       </div>
                     </div>
 
@@ -311,14 +337,22 @@ const RegisterPage: React.FC = () => {
                         <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-esports-muted" size={18} />
                         <Input
                           id="organizerConfirmPassword"
-                          type="password"
+                          type={showConfirmPassword ? "text" : "password"}
                           value={confirmPassword}
                           onChange={(e) => setConfirmPassword(e.target.value)}
                           placeholder="Confirm your password"
-                          className="pl-10 bg-esports-background border-esports-accent1/20 text-esports-text"
+                          className="pl-10 pr-10 bg-esports-background border-esports-accent1/20 text-esports-text"
                           required
                           disabled={isLoading}
                         />
+                        <button 
+                          type="button"
+                          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-esports-muted hover:text-white"
+                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                          tabIndex={-1}
+                        >
+                          {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                        </button>
                       </div>
                     </div>
                   </div>

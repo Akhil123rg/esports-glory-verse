@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Trophy, Mail, Lock, LogIn } from 'lucide-react';
+import { Trophy, Mail, Lock, LogIn, Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -15,6 +15,7 @@ const LoginPage: React.FC = () => {
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const { signIn } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -41,6 +42,10 @@ const LoginPage: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
   };
 
   return (
@@ -90,14 +95,22 @@ const LoginPage: React.FC = () => {
                     <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-esports-muted" size={18} />
                     <Input
                       id="password"
-                      type="password"
+                      type={showPassword ? "text" : "password"}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="Enter your password"
-                      className="pl-10 bg-esports-background border-esports-accent1/20 text-esports-text"
+                      className="pl-10 pr-10 bg-esports-background border-esports-accent1/20 text-esports-text"
                       required
                       disabled={isLoading}
                     />
+                    <button 
+                      type="button"
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-esports-muted hover:text-white"
+                      onClick={togglePasswordVisibility}
+                      tabIndex={-1}
+                    >
+                      {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
                   </div>
                 </div>
 

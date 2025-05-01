@@ -23,12 +23,41 @@ const TournamentCard: React.FC<{ tournament: TournamentProps }> = ({ tournament 
     completed: 'bg-gray-600'
   };
 
+  // Get appropriate game image based on the game name
+  const getGameImage = () => {
+    // Return the provided game image if it exists
+    if (tournament.gameImage) {
+      return tournament.gameImage;
+    }
+    
+    // Fallback images based on game name
+    switch(tournament.game.toLowerCase()) {
+      case 'counter-strike 2':
+      case 'counter-strike':
+      case 'cs2':
+      case 'cs:go':
+        return 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?q=80&w=800';
+      case 'valorant':
+        return 'https://images.unsplash.com/photo-1605810230434-7631ac76ec81?q=80&w=800';
+      case 'league of legends':
+      case 'lol':
+        return 'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?q=80&w=800';
+      case 'dota 2':
+        return 'https://images.unsplash.com/photo-1523712999610-f77fbcfc3843?q=80&w=800';
+      case 'call of duty':
+      case 'cod':
+        return 'https://images.unsplash.com/photo-1487058792275-0ad4aaf24ca7?q=80&w=800';
+      default:
+        return 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?q=80&w=800';
+    }
+  };
+
   return (
     <div className="esports-card">
       {/* Game Image */}
       <div className="relative h-40 overflow-hidden">
         <img 
-          src={tournament.gameImage} 
+          src={getGameImage()} 
           alt={tournament.game}
           className="w-full h-full object-cover"
         />

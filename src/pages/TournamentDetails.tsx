@@ -1,14 +1,16 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { Gamepad as GamepadIcon, Calendar, Users, Trophy } from 'lucide-react';
+import { Gamepad as GamepadIcon, Calendar, Users, Trophy, Check, CalendarPlus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useToast } from '@/hooks/use-toast';
 
 // Mock tournament data (would come from an API in a real app)
 const tournamentData = {
   id: '1',
   name: 'ESL Pro League Season 16',
   game: 'Counter-Strike 2',
+  gameImage: 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?q=80&w=800',
   startDate: '2025-06-15',
   endDate: '2025-06-22',
   prizePool: '$250,000',
@@ -43,10 +45,57 @@ const tournamentData = {
   streamLink: 'https://www.twitch.tv/esl_cs'
 };
 
+// Additional tournament data for other IDs
+const tournamentsById = {
+  '1': tournamentData,
+  '2': {
+    ...tournamentData,
+    id: '2',
+    name: 'Valorant Champions Tour 2025',
+    game: 'Valorant',
+    gameImage: 'https://images.unsplash.com/photo-1605810230434-7631ac76ec81?q=80&w=800',
+    description: 'The Valorant Champions Tour is the premier competition for Valorant esports. The 2025 season features the best teams from around the world competing for the title of world champion.',
+    streamLink: 'https://www.twitch.tv/valorant'
+  },
+  '3': {
+    ...tournamentData,
+    id: '3',
+    name: 'League of Legends World Championship',
+    game: 'League of Legends',
+    gameImage: 'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?q=80&w=800',
+    description: 'The League of Legends World Championship is an annual tournament where teams from around the world compete for the Summoner\'s Cup and the title of world champion.',
+    streamLink: 'https://www.twitch.tv/riotgames'
+  }
+};
+
 const TournamentDetailsPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  // In a real app, you would fetch the tournament based on the ID
-  const tournament = tournamentData;
+  const tournament = tournamentsById[id as keyof typeof tournamentsById] || tournamentData;
+  const { toast } = useToast();
+  const [addedToCalendar, setAddedToCalendar] = useState(false);
+  const [registering, setRegistering] = useState(false);
+
+  const handleAddToCalendar = () => {
+    // In a real app, this would create a calendar event
+    setAddedToCalendar(true);
+    toast({
+      title: "Added to calendar",
+      description: `${tournament.name} has been added to your calendar.`,
+    });
+  };
+
+  const handleRegisterTeam = () => {
+    setRegistering(true);
+    
+    // Simulate API call
+    setTimeout(() => {
+      setRegistering(false);
+      toast({
+        title: "Team registered",
+        description: "Your team has been successfully registered for this tournament.",
+      });
+    }, 1500);
+  };
 
   return (
     <div className="py-12">
@@ -119,11 +168,34 @@ const TournamentDetailsPage: React.FC = () => {
             <div className="bg-esports-card border border-esports-accent1/20 rounded-lg p-6 mb-6">
               <h3 className="text-xl font-display font-bold text-white mb-4">Actions</h3>
               <div className="space-y-3">
-                <Button className="w-full bg-esports-accent1 hover:bg-esports-accent1/90">
-                  Register Team
+                <Button 
+                  className="w-full bg-esports-accent1 hover:bg-esports-accent1/90"
+                  onClick={handleRegisterTeam}
+                  disabled={registering}
+                >
+                  {registering ? "Registering..." : "Register Team"}
                 </Button>
-                <Button variant="outline" className="w-full border-esports-accent1 text-esports-accent1 hover:bg-esports-accent1 hover:text-white">
-                  Add to Calendar
+                <Button 
+                  variant="outline" 
+                  className={`w-full ${
+                    addedToCalendar 
+                      ? "border-green-500 text-green-500 hover:bg-green-500 hover:text-white" 
+                      : "border-esports-accent1 text-esports-accent1 hover:bg-esports-accent1 hover:text-white"
+                  }`}
+                  onClick={handleAddToCalendar}
+                  disabled={addedToCalendar}
+                >
+                  {addedToCalendar ? (
+                    <>
+                      <Check size={16} />
+                      Added to Calendar
+                    </>
+                  ) : (
+                    <>
+                      <CalendarPlus size={16} />
+                      Add to Calendar
+                    </>
+                  )}
                 </Button>
               </div>
             </div>

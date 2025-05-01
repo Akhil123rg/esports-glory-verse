@@ -10,27 +10,58 @@ const GameDetailsPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
 
   // This would come from an API in a real application
-  const game = {
-    id: id || '1',
-    name: 'Valorant',
-    image: 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?q=80&w=800',
-    tournaments: 24,
-    players: 15800,
-    popularityRank: 1,
-    description: 'Valorant is a free-to-play first-person hero shooter developed and published by Riot Games. The game operates on an economy-round, objective-based, first-to-13 competitive format where players select unique agents, each bringing a set of distinctive abilities.',
-    platforms: ['PC'],
-    developer: 'Riot Games',
-    releaseDate: 'June 2, 2020',
-    genre: 'Tactical First-Person Shooter'
+  const games = {
+    "1": {
+      id: "1",
+      name: 'Valorant',
+      image: 'https://images.unsplash.com/photo-1605810230434-7631ac76ec81?q=80&w=800',
+      tournaments: 24,
+      players: 15800,
+      popularityRank: 1,
+      description: 'Valorant is a free-to-play first-person hero shooter developed and published by Riot Games. The game operates on an economy-round, objective-based, first-to-13 competitive format where players select unique agents, each bringing a set of distinctive abilities.',
+      platforms: ['PC'],
+      developer: 'Riot Games',
+      releaseDate: 'June 2, 2020',
+      genre: 'Tactical First-Person Shooter'
+    },
+    "2": {
+      id: "2", 
+      name: 'Counter-Strike 2',
+      image: 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?q=80&w=800',
+      tournaments: 32,
+      players: 24600,
+      popularityRank: 2,
+      description: 'Counter-Strike 2 is a competitive tactical first-person shooter and the latest iteration in Valve\'s Counter-Strike series. The game pits two teams against each other: the Terrorists and the Counter-Terrorists, featuring multiple game modes with distinct objectives.',
+      platforms: ['PC'],
+      developer: 'Valve Corporation',
+      releaseDate: 'September 27, 2023',
+      genre: 'Tactical First-Person Shooter'
+    },
+    "3": {
+      id: "3",
+      name: 'League of Legends',
+      image: 'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?q=80&w=800',
+      tournaments: 18,
+      players: 32400,
+      popularityRank: 3,
+      description: 'League of Legends is a team-based strategy game where two teams of five powerful champions face off to destroy the other's base. Choose from over 140 champions to make epic plays, secure kills, and take down towers as you battle your way to victory.',
+      platforms: ['PC'],
+      developer: 'Riot Games',
+      releaseDate: 'October 27, 2009',
+      genre: 'MOBA'
+    }
   };
 
-  // Sample tournaments data
+  // Get the current game or default to the first one if ID not found
+  const game = games[id as keyof typeof games] || games["1"];
+
+  // Sample tournaments data based on the current game
   const tournaments: TournamentProps[] = [
     {
       id: '1',
-      title: 'Valorant Champions Tour 2025',
-      game: 'Valorant',
-      gameImage: 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?q=80&w=800',
+      title: `${game.name} Champions Tour 2025`,
+      game: game.name,
+      gameImage: game.image,
       startDate: 'May 15, 2025',
       endDate: 'June 20, 2025',
       prizePool: '$500,000',
@@ -39,9 +70,9 @@ const GameDetailsPage: React.FC = () => {
     },
     {
       id: '2',
-      title: 'Valorant Pro League Season 3',
-      game: 'Valorant',
-      gameImage: 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?q=80&w=800',
+      title: `${game.name} Pro League Season 3`,
+      game: game.name,
+      gameImage: game.image,
       startDate: 'June 5, 2025',
       endDate: 'July 30, 2025',
       prizePool: '$250,000',
@@ -50,9 +81,9 @@ const GameDetailsPage: React.FC = () => {
     },
     {
       id: '3',
-      title: 'Valorant Regional Clash',
-      game: 'Valorant',
-      gameImage: 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?q=80&w=800',
+      title: `${game.name} Regional Clash`,
+      game: game.name,
+      gameImage: game.image,
       startDate: 'Mar 1, 2025',
       endDate: 'Mar 25, 2025',
       prizePool: '$50,000',

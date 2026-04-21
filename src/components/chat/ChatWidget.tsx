@@ -261,6 +261,25 @@ const ChatWidget: React.FC = () => {
       requestAnimationFrame(() => {
         threadRef.current?.scrollTo({ top: threadRef.current.scrollHeight, behavior: 'smooth' });
       });
+
+      // If the recipient is a demo team owner, trigger an AI auto-reply.
+      const demo = demoOwners[activePartner.id];
+      if (demo) {
+        supabase.functions.invoke('demo-team-reply', {
+          body: {
+            mode: 'dm',
+            demoTeamId: demo.demoTeamId,
+            demoTeamName: demo.demoTeamName,
+            demoTeamGame: demo.demoTeamGame,
+            demoOwnerName: demo.demoOwnerName,
+            ownerUuid: demo.ownerUuid,
+            teamUuid: demo.teamUuid,
+            recipientUuid: user.id,
+            userMessage: content,
+            userName: user.email?.split('@')[0],
+          },
+        });
+      }
     } catch (err: any) {
       toast({ title: 'Send failed', description: err.message, variant: 'destructive' });
     } finally {

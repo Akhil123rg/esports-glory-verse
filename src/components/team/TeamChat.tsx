@@ -8,6 +8,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 import { isUuid } from '@/lib/uuid';
+import { demoIdToUuid, getDemoTeam, isDemoTeam } from '@/lib/demoTeams';
 
 interface TeamMessage {
   id: string;
@@ -31,13 +32,47 @@ const TeamChat: React.FC<Props> = ({ teamId }) => {
   const [sending, setSending] = useState(false);
   const [text, setText] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
-  const isReal = isUuid(teamId);
+
+  const [resolvedTeamId, setResolvedTeamId] = useState<string | null>(null);
+  const demo = isDemoTeam(teamId) ? getDemoTeam(teamId) : null;
 
   const scrollToBottom = () => {
     requestAnimationFrame(() => {
       scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
     });
   };
+
+  // Resolve teamId (uuid passthrough or demo->uuid + ensure)
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      if (isUuid(teamId)) {
+        if (!cancelled) setResolvedTeamId(teamId);
+        return;
+      }
+      if (demo) {
+        const teamUuid = await demoIdToUuid('team', teamId);
+        const ownerUuid = await demoIdToUuid('owner', teamId);
+        await supabase.functions.invoke('demo-team-reply', {
+          body: {
+            mode: 'ensure',
+            demoTeamId: teamId,
+            demoTeamName: demo.name,
+            demoTeamGame: demo.primaryGame,
+            demoOwnerName: demo.ownerName,
+            ownerUuid,
+            teamUuid,
+          },
+        });
+        if (!cancelled) setResolvedTeamId(teamUuid);
+      } else {
+        if (!cancelled) setResolvedTeamId(null);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [teamId, demo]);
 
   const hydrateAuthors = async (rows: TeamMessage[]): Promise<TeamMessage[]> => {
     const ids = Array.from(new Set(rows.map((r) => r.author_id)));
@@ -51,7 +86,7 @@ const TeamChat: React.FC<Props> = ({ teamId }) => {
   };
 
   useEffect(() => {
-    if (!isReal) {
+    if (!resolvedTeamId) {
       setLoading(false);
       return;
     }
@@ -61,7 +96,7 @@ const TeamChat: React.FC<Props> = ({ teamId }) => {
       const { data, error } = await supabase
         .from('team_messages')
         .select('id, team_id, author_id, content, created_at')
-        .eq('team_id', teamId)
+        .eq('team_id', resolvedTeamId)
         .order('created_at', { ascending: true })
         .limit(200);
       if (error) {
@@ -78,14 +113,14 @@ const TeamChat: React.FC<Props> = ({ teamId }) => {
     load();
 
     const channel = supabase
-      .channel(`team_messages:${teamId}`)
+      .channel(`team_messages:${resolvedTeamId}`)
       .on(
         'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'team_messages', filter: `team_id=eq.${teamId}` },
+        { event: 'INSERT', schema: 'public', table: 'team_messages', filter: `team_id=eq.${resolvedTeamId}` },
         async (payload) => {
           const row = payload.new as TeamMessage;
           const [hydrated] = await hydrateAuthors([row]);
-          setMessages((prev) => [...prev, hydrated]);
+          setMessages((prev) => (prev.some((m) => m.id === hydrated.id) ? prev : [...prev, hydrated]));
           scrollToBottom();
         }
       )
@@ -95,7 +130,7 @@ const TeamChat: React.FC<Props> = ({ teamId }) => {
       active = false;
       supabase.removeChannel(channel);
     };
-  }, [teamId, isReal, toast]);
+  }, [resolvedTeamId, toast]);
 
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -106,20 +141,35 @@ const TeamChat: React.FC<Props> = ({ teamId }) => {
       navigate('/login');
       return;
     }
-    if (!isReal) {
-      toast({
-        title: 'Demo team',
-        description: 'This sample team is not stored in the database.',
-      });
+    if (!resolvedTeamId) {
+      toast({ title: 'Team unavailable', description: 'Please try again in a moment.' });
       return;
     }
     setSending(true);
     try {
       const { error } = await supabase
         .from('team_messages')
-        .insert({ team_id: teamId, author_id: user.id, content });
+        .insert({ team_id: resolvedTeamId, author_id: user.id, content });
       if (error) throw error;
       setText('');
+
+      // Trigger AI auto-reply for demo teams (the "owner" responds on the wall).
+      if (demo) {
+        const ownerUuid = await demoIdToUuid('owner', teamId);
+        supabase.functions.invoke('demo-team-reply', {
+          body: {
+            mode: 'team',
+            demoTeamId: teamId,
+            demoTeamName: demo.name,
+            demoTeamGame: demo.primaryGame,
+            demoOwnerName: demo.ownerName,
+            ownerUuid,
+            teamUuid: resolvedTeamId,
+            userMessage: content,
+            userName: user.email?.split('@')[0],
+          },
+        });
+      }
     } catch (err: any) {
       toast({ title: 'Failed to send', description: err.message, variant: 'destructive' });
     } finally {
@@ -127,10 +177,10 @@ const TeamChat: React.FC<Props> = ({ teamId }) => {
     }
   };
 
-  if (!isReal) {
+  if (!resolvedTeamId && !loading) {
     return (
       <div className="bg-esports-card border border-esports-accent1/20 rounded-lg p-6 text-center text-esports-muted">
-        Team chat is available for teams created by users. This page shows sample data.
+        Team chat is unavailable for this team.
       </div>
     );
   }

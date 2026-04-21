@@ -9,6 +9,7 @@ import FollowTeamButton from '@/components/team/FollowTeamButton';
 import TeamChat from '@/components/team/TeamChat';
 import { supabase } from '@/integrations/supabase/client';
 import { isUuid } from '@/lib/uuid';
+import { demoIdToUuid, getDemoTeam, isDemoTeam } from '@/lib/demoTeams';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
@@ -17,6 +18,8 @@ const TeamDetailsPage: React.FC = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [ownerId, setOwnerId] = useState<string | null>(null);
+  const [resolvedTeamUuid, setResolvedTeamUuid] = useState<string | null>(null);
+  const [sendingHello, setSendingHello] = useState(false);
 
   // This would come from an API in a real application
   const team = {
@@ -52,37 +55,70 @@ const TeamDetailsPage: React.FC = () => {
     country: 'United States'
   };
 
+  const demoInfo = id ? (isDemoTeam(id) ? getDemoTeam(id) : null) : null;
+
   useEffect(() => {
-    if (!id || !isUuid(id)) return;
-    supabase
-      .from('teams')
-      .select('owner_id')
-      .eq('id', id)
-      .maybeSingle()
-      .then(({ data }) => setOwnerId(data?.owner_id ?? null));
-  }, [id]);
+    if (!id) return;
+    if (isUuid(id)) {
+      setResolvedTeamUuid(id);
+      supabase
+        .from('teams')
+        .select('owner_id')
+        .eq('id', id)
+        .maybeSingle()
+        .then(({ data }) => setOwnerId(data?.owner_id ?? null));
+    } else if (demoInfo) {
+      Promise.all([demoIdToUuid('team', id), demoIdToUuid('owner', id)]).then(
+        ([teamUuid, ownerUuid]) => {
+          setResolvedTeamUuid(teamUuid);
+          setOwnerId(ownerUuid);
+        }
+      );
+    }
+  }, [id, demoInfo]);
 
   const handleMessageOwner = async () => {
     if (!user) {
       toast({ title: 'Sign in required', description: 'Please sign in to send messages.' });
       return;
     }
-    if (!ownerId) {
-      toast({ title: 'Demo team', description: 'No owner to message on this sample team.' });
+    if (!ownerId || !id) {
+      toast({ title: 'Owner unavailable', description: 'Try again in a moment.' });
       return;
     }
     if (ownerId === user.id) {
       toast({ title: "That's you!", description: 'You own this team.' });
       return;
     }
+    setSendingHello(true);
+    const greeting = `Hi! I'd like to chat about ${demoInfo?.name ?? team.name}.`;
     const { error } = await supabase
       .from('direct_messages')
-      .insert({ sender_id: user.id, recipient_id: ownerId, content: `Hi! I'd like to chat about ${team.name}.` });
+      .insert({ sender_id: user.id, recipient_id: ownerId, content: greeting });
     if (error) {
+      setSendingHello(false);
       toast({ title: 'Message failed', description: error.message, variant: 'destructive' });
-    } else {
-      toast({ title: 'Message sent', description: 'Open the chat icon to continue the conversation.' });
+      return;
     }
+    // Auto-reply for demo teams: the synthetic owner replies via AI.
+    if (demoInfo && resolvedTeamUuid) {
+      supabase.functions.invoke('demo-team-reply', {
+        body: {
+          mode: 'dm',
+          demoTeamId: id,
+          demoTeamName: demoInfo.name,
+          demoTeamGame: demoInfo.primaryGame,
+          demoOwnerName: demoInfo.ownerName,
+          ownerUuid: ownerId,
+          teamUuid: resolvedTeamUuid,
+          recipientUuid: user.id,
+          userMessage: greeting,
+          userName: user.email?.split('@')[0],
+        },
+      });
+    }
+    setSendingHello(false);
+    toast({ title: 'Message sent', description: 'Open the chat icon to continue the conversation.' });
   };
 
   const getInitials = (name: string) => {

@@ -8,6 +8,16 @@ import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { DEMO_TEAMS, demoIdToUuid } from '@/lib/demoTeams';
+
+interface DemoOwnerEntry {
+  demoTeamId: string;
+  demoTeamName: string;
+  demoTeamGame: string;
+  demoOwnerName: string;
+  teamUuid: string;
+  ownerUuid: string;
+}
 
 interface DM {
   id: string;
@@ -45,6 +55,33 @@ const ChatWidget: React.FC = () => {
   const [search, setSearch] = useState('');
   const [searchResults, setSearchResults] = useState<ProfileLite[]>([]);
   const threadRef = useRef<HTMLDivElement>(null);
+  const [demoOwners, setDemoOwners] = useState<Record<string, DemoOwnerEntry>>({});
+
+  // Precompute demo team owner UUIDs so we know which DM recipients should auto-reply via AI.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const map: Record<string, DemoOwnerEntry> = {};
+      for (const [demoTeamId, info] of Object.entries(DEMO_TEAMS)) {
+        const [teamUuid, ownerUuid] = await Promise.all([
+          demoIdToUuid('team', demoTeamId),
+          demoIdToUuid('owner', demoTeamId),
+        ]);
+        map[ownerUuid] = {
+          demoTeamId,
+          demoTeamName: info.name,
+          demoTeamGame: info.primaryGame,
+          demoOwnerName: info.ownerName,
+          teamUuid,
+          ownerUuid,
+        };
+      }
+      if (!cancelled) setDemoOwners(map);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const totalUnread = useMemo(
     () => conversations.reduce((sum, c) => sum + c.unread, 0),
@@ -224,6 +261,25 @@ const ChatWidget: React.FC = () => {
       requestAnimationFrame(() => {
         threadRef.current?.scrollTo({ top: threadRef.current.scrollHeight, behavior: 'smooth' });
       });
+
+      // If the recipient is a demo team owner, trigger an AI auto-reply.
+      const demo = demoOwners[activePartner.id];
+      if (demo) {
+        supabase.functions.invoke('demo-team-reply', {
+          body: {
+            mode: 'dm',
+            demoTeamId: demo.demoTeamId,
+            demoTeamName: demo.demoTeamName,
+            demoTeamGame: demo.demoTeamGame,
+            demoOwnerName: demo.demoOwnerName,
+            ownerUuid: demo.ownerUuid,
+            teamUuid: demo.teamUuid,
+            recipientUuid: user.id,
+            userMessage: content,
+            userName: user.email?.split('@')[0],
+          },
+        });
+      }
     } catch (err: any) {
       toast({ title: 'Send failed', description: err.message, variant: 'destructive' });
     } finally {

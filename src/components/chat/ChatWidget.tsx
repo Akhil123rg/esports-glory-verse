@@ -8,6 +8,16 @@ import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { DEMO_TEAMS, demoIdToUuid } from '@/lib/demoTeams';
+
+interface DemoOwnerEntry {
+  demoTeamId: string;
+  demoTeamName: string;
+  demoTeamGame: string;
+  demoOwnerName: string;
+  teamUuid: string;
+  ownerUuid: string;
+}
 
 interface DM {
   id: string;

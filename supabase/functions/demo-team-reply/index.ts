@@ -75,15 +75,38 @@ Deno.serve(async (req) => {
       userName,
     } = body;
 
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
 
-    if (!LOVABLE_API_KEY || !SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
-      throw new Error('Missing required environment configuration');
+    if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+      throw new Error('Missing Supabase configuration');
     }
 
-    const systemPrompt = `You are ${demoOwnerName}, the owner and captain of the eSports team "${demoTeamName}" which competes in ${demoTeamGame}. You are friendly, confident, and passionate about competitive gaming. Reply directly to the fan or player who messaged you. Keep replies concise (1-3 sentences), in-character, and relevant to the message. Mention your team or game when natural. Never break character or mention you are an AI.`;
+    const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+      auth: { persistSession: false },
+    });
+
+    if (!teamUuid) throw new Error('teamUuid is required');
+    await ensureDemoTeamExists(
+      admin,
+      ownerUuid,
+      teamUuid,
+      demoOwnerName,
+      demoTeamName,
+      demoTeamGame
+    );
+
+    if (mode === 'ensure') {
+      return new Response(JSON.stringify({ ok: true }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    if (!LOVABLE_API_KEY) throw new Error('LOVABLE_API_KEY not configured');
+    if (!userMessage) throw new Error('userMessage is required for reply modes');
+
+    const systemPrompt = `You are ${demoOwnerName}, the owner and captain of the eSports team "${demoTeamName}" which competes in ${demoTeamGame}. You are friendly, confident, and passionate about competitive gaming. Reply directly to the fan or player who messaged you. Keep replies concise (1-3 sentences), in-character, and relevant to the message they sent. Mention your team or game when natural. Never break character or mention you are an AI.`;
 
     const userPrompt = `${userName ? `${userName} says: ` : ''}"${userMessage}"`;
 
@@ -125,10 +148,6 @@ Deno.serve(async (req) => {
       aiJson.choices?.[0]?.message?.content?.trim() ||
       `Thanks for reaching out! — ${demoOwnerName} of ${demoTeamName}`;
 
-    const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
-      auth: { persistSession: false },
-    });
-
     if (mode === 'dm') {
       if (!recipientUuid) throw new Error('recipientUuid required for dm mode');
       const { error } = await admin.from('direct_messages').insert({
@@ -138,7 +157,6 @@ Deno.serve(async (req) => {
       });
       if (error) throw error;
     } else if (mode === 'team') {
-      if (!teamUuid) throw new Error('teamUuid required for team mode');
       const { error } = await admin.from('team_messages').insert({
         team_id: teamUuid,
         author_id: ownerUuid,

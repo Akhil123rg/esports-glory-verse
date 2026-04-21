@@ -6,6 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 import { isUuid } from '@/lib/uuid';
+import { demoIdToUuid, getDemoTeam, isDemoTeam } from '@/lib/demoTeams';
 
 interface FollowTeamButtonProps {
   teamId: string;
@@ -20,11 +21,43 @@ const FollowTeamButton: React.FC<FollowTeamButtonProps> = ({ teamId, onChange })
   const [count, setCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
-
-  const isReal = isUuid(teamId);
+  const [resolvedTeamId, setResolvedTeamId] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!isReal) {
+    let cancelled = false;
+    (async () => {
+      if (isUuid(teamId)) {
+        if (!cancelled) setResolvedTeamId(teamId);
+        return;
+      }
+      if (isDemoTeam(teamId)) {
+        const teamUuid = await demoIdToUuid('team', teamId);
+        const ownerUuid = await demoIdToUuid('owner', teamId);
+        const info = getDemoTeam(teamId)!;
+        // Make sure the demo team & owner profile exist before we try to follow.
+        await supabase.functions.invoke('demo-team-reply', {
+          body: {
+            mode: 'ensure',
+            demoTeamId: teamId,
+            demoTeamName: info.name,
+            demoTeamGame: info.primaryGame,
+            demoOwnerName: info.ownerName,
+            ownerUuid,
+            teamUuid,
+          },
+        });
+        if (!cancelled) setResolvedTeamId(teamUuid);
+      } else {
+        if (!cancelled) setResolvedTeamId(null);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [teamId]);
+
+  useEffect(() => {
+    if (!resolvedTeamId) {
       setLoading(false);
       return;
     }
@@ -35,12 +68,12 @@ const FollowTeamButton: React.FC<FollowTeamButtonProps> = ({ teamId, onChange })
         supabase
           .from('team_followers')
           .select('id', { count: 'exact', head: true })
-          .eq('team_id', teamId),
+          .eq('team_id', resolvedTeamId),
         user
           ? supabase
               .from('team_followers')
               .select('id')
-              .eq('team_id', teamId)
+              .eq('team_id', resolvedTeamId)
               .eq('user_id', user.id)
               .maybeSingle()
           : Promise.resolve({ data: null, error: null } as any),
@@ -55,10 +88,10 @@ const FollowTeamButton: React.FC<FollowTeamButtonProps> = ({ teamId, onChange })
     load();
 
     const channel = supabase
-      .channel(`team_followers:${teamId}`)
+      .channel(`team_followers:${resolvedTeamId}`)
       .on(
         'postgres_changes',
-        { event: '*', schema: 'public', table: 'team_followers', filter: `team_id=eq.${teamId}` },
+        { event: '*', schema: 'public', table: 'team_followers', filter: `team_id=eq.${resolvedTeamId}` },
         () => load()
       )
       .subscribe();
@@ -67,7 +100,7 @@ const FollowTeamButton: React.FC<FollowTeamButtonProps> = ({ teamId, onChange })
       active = false;
       supabase.removeChannel(channel);
     };
-  }, [teamId, user, isReal]);
+  }, [resolvedTeamId, user]);
 
   const toggle = async () => {
     if (!user) {
@@ -75,11 +108,8 @@ const FollowTeamButton: React.FC<FollowTeamButtonProps> = ({ teamId, onChange })
       navigate('/login');
       return;
     }
-    if (!isReal) {
-      toast({
-        title: 'Demo team',
-        description: 'This is sample data. Create a real team to enable follows.',
-      });
+    if (!resolvedTeamId) {
+      toast({ title: 'Team unavailable', description: 'Please try again in a moment.' });
       return;
     }
 
@@ -89,14 +119,14 @@ const FollowTeamButton: React.FC<FollowTeamButtonProps> = ({ teamId, onChange })
         const { error } = await supabase
           .from('team_followers')
           .delete()
-          .eq('team_id', teamId)
+          .eq('team_id', resolvedTeamId)
           .eq('user_id', user.id);
         if (error) throw error;
         onChange?.(Math.max(0, count - 1), false);
       } else {
         const { error } = await supabase
           .from('team_followers')
-          .insert({ team_id: teamId, user_id: user.id });
+          .insert({ team_id: resolvedTeamId, user_id: user.id });
         if (error) throw error;
         onChange?.(count + 1, true);
       }

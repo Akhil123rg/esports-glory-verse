@@ -36,19 +36,30 @@ const TournamentCard: React.FC<{ tournament: TournamentProps }> = ({ tournament 
       case 'counter-strike':
       case 'cs2':
       case 'cs:go':
-        return 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?q=80&w=800';
+      case 'counter-strike: global offensive':
+        return 'https://cdn.cloudflare.steamstatic.com/steam/apps/730/header.jpg';
       case 'valorant':
-        return 'https://images.unsplash.com/photo-1605810230434-7631ac76ec81?q=80&w=800';
+        return 'https://cdn.cloudflare.steamstatic.com/steam/apps/1270790/header.jpg';
       case 'league of legends':
       case 'lol':
-        return 'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?q=80&w=800';
+        return 'https://cdn1.epicgames.com/offer/24b9b5e323bc40eea252a10cdd3b2f10/EGS_LeagueofLegends_RiotGames_S1_2560x1440-80471666c140f790f28dff68d72c384b';
       case 'dota 2':
-        return 'https://images.unsplash.com/photo-1523712999610-f77fbcfc3843?q=80&w=800';
+        return 'https://cdn.cloudflare.steamstatic.com/steam/apps/570/header.jpg';
       case 'call of duty':
       case 'cod':
-        return 'https://images.unsplash.com/photo-1487058792275-0ad4aaf24ca7?q=80&w=800';
+      case 'call of duty: modern warfare':
+        return 'https://cdn.cloudflare.steamstatic.com/steam/apps/2519060/header.jpg';
+      case 'fortnite':
+        return 'https://cdn2.unrealengine.com/social-image-chapter4-s3-3840x2160-d35912cc25ad.jpg';
+      case 'overwatch':
+      case 'overwatch 2':
+        return 'https://cdn.cloudflare.steamstatic.com/steam/apps/2357570/header.jpg';
+      case 'rocket league':
+        return 'https://cdn.cloudflare.steamstatic.com/steam/apps/252950/header.jpg';
+      case 'rainbow six siege':
+        return 'https://cdn.cloudflare.steamstatic.com/steam/apps/359550/header.jpg';
       default:
-        return 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?q=80&w=800';
+        return 'https://cdn.cloudflare.steamstatic.com/steam/apps/730/header.jpg';
     }
   };
 

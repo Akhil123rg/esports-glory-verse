@@ -55,6 +55,33 @@ const ChatWidget: React.FC = () => {
   const [search, setSearch] = useState('');
   const [searchResults, setSearchResults] = useState<ProfileLite[]>([]);
   const threadRef = useRef<HTMLDivElement>(null);
+  const [demoOwners, setDemoOwners] = useState<Record<string, DemoOwnerEntry>>({});
+
+  // Precompute demo team owner UUIDs so we know which DM recipients should auto-reply via AI.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const map: Record<string, DemoOwnerEntry> = {};
+      for (const [demoTeamId, info] of Object.entries(DEMO_TEAMS)) {
+        const [teamUuid, ownerUuid] = await Promise.all([
+          demoIdToUuid('team', demoTeamId),
+          demoIdToUuid('owner', demoTeamId),
+        ]);
+        map[ownerUuid] = {
+          demoTeamId,
+          demoTeamName: info.name,
+          demoTeamGame: info.primaryGame,
+          demoOwnerName: info.ownerName,
+          teamUuid,
+          ownerUuid,
+        };
+      }
+      if (!cancelled) setDemoOwners(map);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const totalUnread = useMemo(
     () => conversations.reduce((sum, c) => sum + c.unread, 0),

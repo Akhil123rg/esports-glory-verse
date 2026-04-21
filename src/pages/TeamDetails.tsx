@@ -52,6 +52,39 @@ const TeamDetailsPage: React.FC = () => {
     country: 'United States'
   };
 
+  useEffect(() => {
+    if (!id || !isUuid(id)) return;
+    supabase
+      .from('teams')
+      .select('owner_id')
+      .eq('id', id)
+      .maybeSingle()
+      .then(({ data }) => setOwnerId(data?.owner_id ?? null));
+  }, [id]);
+
+  const handleMessageOwner = async () => {
+    if (!user) {
+      toast({ title: 'Sign in required', description: 'Please sign in to send messages.' });
+      return;
+    }
+    if (!ownerId) {
+      toast({ title: 'Demo team', description: 'No owner to message on this sample team.' });
+      return;
+    }
+    if (ownerId === user.id) {
+      toast({ title: "That's you!", description: 'You own this team.' });
+      return;
+    }
+    const { error } = await supabase
+      .from('direct_messages')
+      .insert({ sender_id: user.id, recipient_id: ownerId, content: `Hi! I'd like to chat about ${team.name}.` });
+    if (error) {
+      toast({ title: 'Message failed', description: error.message, variant: 'destructive' });
+    } else {
+      toast({ title: 'Message sent', description: 'Open the chat icon to continue the conversation.' });
+    }
+  };
+
   const getInitials = (name: string) => {
     return name
       .split(' ')
@@ -92,11 +125,14 @@ const TeamDetailsPage: React.FC = () => {
               <p className="text-esports-muted mb-4 max-w-2xl">{team.description}</p>
               
               <div className="flex flex-wrap items-center justify-center md:justify-start gap-3">
-                <Button className="bg-esports-accent1 hover:bg-esports-accent1/90 text-white">
-                  Follow Team
-                </Button>
-                <Button variant="outline" className="border-esports-accent1 text-esports-accent1 hover:bg-esports-accent1 hover:text-white">
-                  Send Message
+                <FollowTeamButton teamId={team.id} />
+                <Button
+                  variant="outline"
+                  onClick={handleMessageOwner}
+                  className="border-esports-accent1 text-esports-accent1 hover:bg-esports-accent1 hover:text-white"
+                >
+                  <MessageSquare className="mr-2 h-4 w-4" />
+                  Message Owner
                 </Button>
               </div>
             </div>
@@ -107,10 +143,15 @@ const TeamDetailsPage: React.FC = () => {
         <Tabs defaultValue="roster" className="w-full">
           <TabsList className="bg-esports-card border border-esports-accent1/20 mb-6">
             <TabsTrigger value="roster">Roster</TabsTrigger>
+            <TabsTrigger value="chat">Team Chat</TabsTrigger>
             <TabsTrigger value="achievements">Achievements</TabsTrigger>
             <TabsTrigger value="schedule">Schedule</TabsTrigger>
             <TabsTrigger value="stats">Stats</TabsTrigger>
           </TabsList>
+
+          <TabsContent value="chat">
+            <TeamChat teamId={team.id} />
+          </TabsContent>
           
           <TabsContent value="roster">
             <div className="bg-esports-card border border-esports-accent1/20 rounded-lg p-6">

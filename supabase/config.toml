@@ -1,1 +1,4 @@
 project_id = "rneewcvouitgksijutvm"
+
+[functions.demo-team-reply]
+verify_jwt = false

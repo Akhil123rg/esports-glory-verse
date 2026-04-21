@@ -12,16 +12,48 @@ const corsHeaders = {
 };
 
 interface RequestBody {
-  mode: 'dm' | 'team';
+  mode: 'dm' | 'team' | 'ensure';
   demoTeamId: string;
   demoTeamName: string;
   demoTeamGame: string;
   demoOwnerName: string;
   ownerUuid: string; // synthetic owner uuid (sender_id for DM / author_id for wall)
-  teamUuid?: string; // for team wall mode
+  teamUuid?: string; // for team wall mode + ensure
   recipientUuid?: string; // for DM mode (the real user)
-  userMessage: string;
+  userMessage?: string;
   userName?: string;
+}
+
+// Ensure a synthetic profile row exists for the demo team owner, and a teams row
+// exists for the demo team — required so FK constraints on team_followers and
+// team_messages succeed, and so the chat UI can show the owner's username.
+async function ensureDemoTeamExists(
+  admin: ReturnType<typeof createClient>,
+  ownerUuid: string,
+  teamUuid: string,
+  ownerName: string,
+  teamName: string,
+  primaryGame: string,
+  logo: string | null = null
+) {
+  await admin
+    .from('profiles')
+    .upsert(
+      { id: ownerUuid, username: ownerName, full_name: `${ownerName} (Team Owner)` },
+      { onConflict: 'id' }
+    );
+  await admin
+    .from('teams')
+    .upsert(
+      {
+        id: teamUuid,
+        name: teamName,
+        owner_id: ownerUuid,
+        primary_game: primaryGame,
+        logo,
+      },
+      { onConflict: 'id' }
+    );
 }
 
 Deno.serve(async (req) => {

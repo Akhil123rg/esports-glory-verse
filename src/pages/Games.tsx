@@ -9,7 +9,7 @@ const gamesData: GameProps[] = [
   {
     id: '1',
     name: 'Valorant',
-    image: 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?q=80&w=800',
+    image: 'https://cdn.cloudflare.steamstatic.com/steam/apps/1270790/header.jpg',
     tournaments: 24,
     players: 15800,
     popularityRank: 1
@@ -17,7 +17,7 @@ const gamesData: GameProps[] = [
   {
     id: '2',
     name: 'League of Legends',
-    image: 'https://images.unsplash.com/photo-1605810230434-7631ac76ec81?q=80&w=800',
+    image: 'https://cdn1.epicgames.com/offer/24b9b5e323bc40eea252a10cdd3b2f10/EGS_LeagueofLegends_RiotGames_S1_2560x1440-80471666c140f790f28dff68d72c384b',
     tournaments: 18,
     players: 32600,
     popularityRank: 2
@@ -25,7 +25,7 @@ const gamesData: GameProps[] = [
   {
     id: '3',
     name: 'Counter-Strike 2',
-    image: 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?q=80&w=800',
+    image: 'https://cdn.cloudflare.steamstatic.com/steam/apps/730/header.jpg',
     tournaments: 15,
     players: 28400,
     popularityRank: 3
@@ -33,7 +33,7 @@ const gamesData: GameProps[] = [
   {
     id: '4',
     name: 'Dota 2',
-    image: 'https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?q=80&w=800',
+    image: 'https://cdn.cloudflare.steamstatic.com/steam/apps/570/header.jpg',
     tournaments: 12,
     players: 18200,
     popularityRank: 4
@@ -41,7 +41,7 @@ const gamesData: GameProps[] = [
   {
     id: '5',
     name: 'Fortnite',
-    image: 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?q=80&w=800',
+    image: 'https://cdn2.unrealengine.com/social-image-chapter4-s3-3840x2160-d35912cc25ad.jpg',
     tournaments: 9,
     players: 24500,
     popularityRank: 5
@@ -49,7 +49,7 @@ const gamesData: GameProps[] = [
   {
     id: '6',
     name: 'Overwatch 2',
-    image: 'https://images.unsplash.com/photo-1605810230434-7631ac76ec81?q=80&w=800',
+    image: 'https://cdn.cloudflare.steamstatic.com/steam/apps/2357570/header.jpg',
     tournaments: 8,
     players: 12800,
     popularityRank: 6
@@ -57,7 +57,7 @@ const gamesData: GameProps[] = [
   {
     id: '7',
     name: 'Rocket League',
-    image: 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?q=80&w=800',
+    image: 'https://cdn.cloudflare.steamstatic.com/steam/apps/252950/header.jpg',
     tournaments: 7,
     players: 9600,
     popularityRank: 7
@@ -65,7 +65,7 @@ const gamesData: GameProps[] = [
   {
     id: '8',
     name: 'Rainbow Six Siege',
-    image: 'https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?q=80&w=800',
+    image: 'https://cdn.cloudflare.steamstatic.com/steam/apps/359550/header.jpg',
     tournaments: 6,
     players: 8200,
     popularityRank: 8
@@ -73,7 +73,7 @@ const gamesData: GameProps[] = [
   {
     id: '9',
     name: 'Call of Duty: Modern Warfare',
-    image: 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?q=80&w=800',
+    image: 'https://cdn.cloudflare.steamstatic.com/steam/apps/2519060/header.jpg',
     tournaments: 5,
     players: 14300,
     popularityRank: 9
@@ -81,7 +81,7 @@ const gamesData: GameProps[] = [
   {
     id: '10',
     name: 'Apex Legends',
-    image: 'https://images.unsplash.com/photo-1605810230434-7631ac76ec81?q=80&w=800',
+    image: 'https://cdn.cloudflare.steamstatic.com/steam/apps/1172470/header.jpg',
     tournaments: 4,
     players: 11200,
     popularityRank: 10
@@ -89,7 +89,7 @@ const gamesData: GameProps[] = [
   {
     id: '11',
     name: 'FIFA 25',
-    image: 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?q=80&w=800',
+    image: 'https://cdn.cloudflare.steamstatic.com/steam/apps/2669320/header.jpg',
     tournaments: 4,
     players: 9800,
     popularityRank: 11
@@ -97,7 +97,7 @@ const gamesData: GameProps[] = [
   {
     id: '12',
     name: 'Street Fighter 6',
-    image: 'https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?q=80&w=800',
+    image: 'https://cdn.cloudflare.steamstatic.com/steam/apps/1364780/header.jpg',
     tournaments: 3,
     players: 6200,
     popularityRank: 12

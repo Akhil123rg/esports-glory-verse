@@ -1,13 +1,22 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { Users, Trophy, Gamepad, Award } from 'lucide-react';
+import { Users, Trophy, Gamepad, Award, MessageSquare } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import FollowTeamButton from '@/components/team/FollowTeamButton';
+import TeamChat from '@/components/team/TeamChat';
+import { supabase } from '@/integrations/supabase/client';
+import { isUuid } from '@/lib/uuid';
+import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/hooks/use-toast';
 
 const TeamDetailsPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const [ownerId, setOwnerId] = useState<string | null>(null);
 
   // This would come from an API in a real application
   const team = {

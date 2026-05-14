@@ -23,10 +23,17 @@ import AdminGames from './Games';
 import AdminTeams from './Teams';
 import AdminAwards from './Awards';
 import AdminSettings from './Settings';
+import { useAuth } from '@/contexts/AuthContext';
 
 const AdminDashboard: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const navigate = useNavigate();
+  const { signOut } = useAuth();
+
+  const handleLogout = async () => {
+    await signOut();
+    navigate('/login');
+  };
 
   return (
     <div className="min-h-screen bg-esports-background text-esports-text flex">
@@ -122,7 +129,7 @@ const AdminDashboard: React.FC = () => {
               <div className="ml-3">
                 <p className="text-sm font-medium text-white">Admin User</p>
                 <button 
-                  onClick={() => navigate('/')}
+                  onClick={handleLogout}
                   className="text-xs text-esports-muted hover:text-esports-accent1 flex items-center gap-1"
                 >
                   <LogOut size={12} />

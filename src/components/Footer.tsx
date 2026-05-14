@@ -91,11 +91,6 @@ const Footer: React.FC = () => {
                 </Link>
               </li>
               <li>
-                <Link to="/admin" className="text-esports-muted hover:text-esports-accent1 transition-colors">
-                  Admin Portal
-                </Link>
-              </li>
-              <li>
                 <Link to="#" className="text-esports-muted hover:text-esports-accent1 transition-colors">
                   Organizer Tools
                 </Link>

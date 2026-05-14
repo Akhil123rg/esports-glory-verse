@@ -8,6 +8,7 @@ import { AuthProvider } from "./contexts/AuthContext";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import ChatWidget from "./components/chat/ChatWidget";
+import ProtectedAdminRoute from "./components/auth/ProtectedAdminRoute";
 
 // Pages
 import HomePage from "./pages/Index";
@@ -52,7 +53,7 @@ const App = () => (
                 <Route path="/register" element={<RegisterPage />} />
                 <Route path="/email-verified" element={<EmailVerifiedPage />} />
                 <Route path="/profile" element={<ProfilePage />} />
-                <Route path="/admin/*" element={<AdminDashboardPage />} />
+                <Route path="/admin/*" element={<ProtectedAdminRoute><AdminDashboardPage /></ProtectedAdminRoute>} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </main>
